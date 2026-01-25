@@ -5,3 +5,5 @@
 # .tfstate files (production state should be in a remote backend)
 *.tfstate
 *.tfstate.*
+
+.terraform.lock.hcl
