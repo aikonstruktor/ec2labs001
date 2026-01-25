@@ -1,0 +1,5 @@
+aws_region = "my-aws-region"
+aws_profile = "my-dev-account"
+vpc_cidr    = "10.0.0.0/16"
+vpc_name    = "agents-dev-vpc"
+ec2_name    = "devbox-001"

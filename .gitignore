@@ -1,0 +1,7 @@
+*.local
+# Local .terraform directories
+.terraform/
+
+# .tfstate files (production state should be in a remote backend)
+*.tfstate
+*.tfstate.*
