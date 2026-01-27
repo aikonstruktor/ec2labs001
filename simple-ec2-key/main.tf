@@ -88,5 +88,5 @@ output "public_ip" {
 }
 
 output "ssh_command" {
-  value = "ssh -i ~/.ssh/id_rsa ec2-user@${aws_eip.devbox_eip.public_ip}"
+  value = "ssh -i ~/.ssh/id_rsa ubuntu@${aws_eip.devbox_eip.public_ip}"
 }
