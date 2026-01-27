@@ -66,13 +66,42 @@ resource "aws_key_pair" "deployer" {
 
 # --- EC2 Instance ---
 resource "aws_instance" "devbox" {
-  ami                    = "ami-0ebfd15658b045627" # Amazon Linux 2023
-  instance_type          = "t3.micro"
+  ami                    = "${var.ec2_ami_id}" 
+  instance_type          = "t3.xlarge"
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.ssh_access.id]
   key_name               = aws_key_pair.deployer.key_name
 
   tags = { Name = var.ec2_name }
+
+  # SSH connection settings
+  connection {
+    type        = "ssh"
+    user        = "ubuntu"
+    private_key = file("~/.ssh/id_rsa")
+    host        = self.public_ip
+  }
+
+  # 1. Copy id_ed25519 from your laptop to EC2 ~/.ssh
+  provisioner "file" {
+    source      = "~/.ssh/id_ed25519_toec2"
+    destination = "/home/ubuntu/.ssh/id_ed25519"
+  }
+
+   # 2. Set permissions + install packages
+  provisioner "remote-exec" {
+    inline = [
+      # Fix SSH permissions
+      "chmod 700 /home/ubuntu/.ssh",
+      "chmod 600 /home/ubuntu/.ssh/id_ed25519",
+      "chown -R ubuntu:ubuntu /home/ubuntu/.ssh",
+
+      # Install packages
+      "sudo apt update -y",
+      "sudo apt install -y python3.12-venv postgresql-client nodejs npm"
+    ]
+  } 
+
 }
 
 # --- Static Public IP (Elastic IP) ---
