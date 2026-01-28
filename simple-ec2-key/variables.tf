@@ -22,29 +22,16 @@ variable "vpc_name" {
   default     = "agents-dev-vpc"
 }
 
-variable "ec2_name" {
-  description = "The name tag for the EC2 instance"
-  type        = string
-  default     = "devbox-001"
+variable "ec2_nodes" {
+  description = "List of EC2 nodes with independent configuration"
+  type = list(object({
+    name        = string
+    ami_id      = string
+    instance_type = string
+    ami_user    = string
+  }))
 }
 
-variable "ec2_type" {
-  description = "The instance type for the EC2 instance"
-  type        = string
-  default     = "t4g.large"
-}
-
-variable "ec2_ami_id" {
-  description = "The ami_id for the EC2 instance"
-  type        = string
-  default     = "ami-0ebfd15658b045627" 
-}
-
-variable "ec2_ami_usr" {
-  description = "The default user for the EC2 instance"
-  type        = string
-  default     = "rocky" 
-}
 
 variable "my_ip" {
   description = "Your public IP address for secure SSH access (e.g., 1.2.3.4/32)"

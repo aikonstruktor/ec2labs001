@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 sudo dnf update -y
-sudo dnf install -y postgresql nodejs podman python3-pip which
+sudo dnf install -y postgresql nodejs podman python3-pip which git
 
 ARCH=$(uname -m)
 

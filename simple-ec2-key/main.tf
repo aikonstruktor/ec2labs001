@@ -60,67 +60,82 @@ resource "aws_security_group" "ssh_access" {
 # --- SSH Key Pair ---
 # This assumes you have a key at ~/.ssh/id_rsa.pub
 resource "aws_key_pair" "deployer" {
-  key_name   = "${var.ec2_name}-key"
+  key_name   = "ec2-ssh-key"
   public_key = file("~/.ssh/id_rsa.pub")
 }
 
 # --- EC2 Instance ---
 resource "aws_instance" "devbox" {
-  ami                    = "${var.ec2_ami_id}" 
-  instance_type          = "${var.ec2_type}"
+  for_each = {
+    for idx, node in var.ec2_nodes :
+    idx => node
+  }
+
+  ami                    = each.value.ami_id
+  instance_type          = each.value.instance_type
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.ssh_access.id]
   key_name               = aws_key_pair.deployer.key_name
 
-  tags = { Name = var.ec2_name }
+  tags = {
+    Name    = each.value.name
+    SSHUser = each.value.ami_user
+  }
 
-  # SSH connection settings
   connection {
     type        = "ssh"
-    user        = "${var.ec2_ami_usr}"
+    user        = each.value.ami_user
     private_key = file("~/.ssh/id_rsa")
     host        = self.public_ip
   }
 
-  # 1. Copy id_ed25519, installer from your laptop to EC2 ~/.ssh
   provisioner "file" {
     source      = "~/.ssh/id_ed25519_toec2"
-    destination = "/home/${var.ec2_ami_usr}/.ssh/id_ed25519"
+    destination = "/home/${each.value.ami_user}/.ssh/id_ed25519"
   }
+
   provisioner "file" {
-    source      = "./${var.ec2_ami_usr}.sh"
-    destination = "/home/${var.ec2_ami_usr}/${var.ec2_ami_usr}.sh"
+    source      = "./${each.value.ami_user}.sh"
+    destination = "/home/${each.value.ami_user}/${each.value.ami_user}.sh"
   }
 
-
-   # 2. Set permissions + install packages
   provisioner "remote-exec" {
     inline = [
-      # Fix SSH permissions
-      "chmod 700 /home/${var.ec2_ami_usr}/.ssh",
-      "chmod 600 /home/${var.ec2_ami_usr}/.ssh/id_ed25519",
-      "chown -R ${var.ec2_ami_usr}:${var.ec2_ami_usr} /home/${var.ec2_ami_usr}/.ssh",
-      "chmod +x /home/${var.ec2_ami_usr}/${var.ec2_ami_usr}.sh",
-
-      # Install packages
-      "/home/${var.ec2_ami_usr}/${var.ec2_ami_usr}.sh",
+      "chmod 700 /home/${each.value.ami_user}/.ssh",
+      "chmod 600 /home/${each.value.ami_user}/.ssh/id_ed25519",
+      "chown -R ${each.value.ami_user}:${each.value.ami_user} /home/${each.value.ami_user}/.ssh",
+      "chmod +x /home/${each.value.ami_user}/${each.value.ami_user}.sh",
+      "/home/${each.value.ami_user}/${each.value.ami_user}.sh",
     ]
-  } 
-
+  }
 }
+
 
 # --- Static Public IP (Elastic IP) ---
 resource "aws_eip" "devbox_eip" {
-  instance = aws_instance.devbox.id
+  for_each = aws_instance.devbox
+
+  instance = each.value.id
   domain   = "vpc"
-  tags     = { Name = "${var.ec2_name}-eip" }
+
+  tags = {
+    Name = "${each.value.tags.Name}-eip"
+  }
 }
+
 
 # --- Outputs ---
-output "public_ip" {
-  value = aws_eip.devbox_eip.public_ip
+output "public_ips" {
+  value = {
+    for k, eip in aws_eip.devbox_eip :
+    aws_instance.devbox[k].tags.Name => eip.public_ip
+  }
 }
 
-output "ssh_command" {
-  value = "ssh -i ~/.ssh/id_rsa ${var.ec2_ami_usr}@${aws_eip.devbox_eip.public_ip}"
+output "ssh_commands" {
+  value = {
+    for k, inst in aws_instance.devbox :
+    inst.tags.Name => "ssh -i ~/.ssh/id_rsa ${inst.tags.SSHUser}@${aws_eip.devbox_eip[k].public_ip}"
+  }
 }
+
