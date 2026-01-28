@@ -67,7 +67,7 @@ resource "aws_key_pair" "deployer" {
 # --- EC2 Instance ---
 resource "aws_instance" "devbox" {
   ami                    = "${var.ec2_ami_id}" 
-  instance_type          = "t3.xlarge"
+  instance_type          = "${var.ec2_type}"
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.ssh_access.id]
   key_name               = aws_key_pair.deployer.key_name
@@ -77,28 +77,33 @@ resource "aws_instance" "devbox" {
   # SSH connection settings
   connection {
     type        = "ssh"
-    user        = "ubuntu"
+    user        = "${var.ec2_ami_usr}"
     private_key = file("~/.ssh/id_rsa")
     host        = self.public_ip
   }
 
-  # 1. Copy id_ed25519 from your laptop to EC2 ~/.ssh
+  # 1. Copy id_ed25519, installer from your laptop to EC2 ~/.ssh
   provisioner "file" {
     source      = "~/.ssh/id_ed25519_toec2"
-    destination = "/home/ubuntu/.ssh/id_ed25519"
+    destination = "/home/${var.ec2_ami_usr}/.ssh/id_ed25519"
   }
+  provisioner "file" {
+    source      = "./${var.ec2_ami_usr}.sh"
+    destination = "/home/${var.ec2_ami_usr}/${var.ec2_ami_usr}.sh"
+  }
+
 
    # 2. Set permissions + install packages
   provisioner "remote-exec" {
     inline = [
       # Fix SSH permissions
-      "chmod 700 /home/ubuntu/.ssh",
-      "chmod 600 /home/ubuntu/.ssh/id_ed25519",
-      "chown -R ubuntu:ubuntu /home/ubuntu/.ssh",
+      "chmod 700 /home/${var.ec2_ami_usr}/.ssh",
+      "chmod 600 /home/${var.ec2_ami_usr}/.ssh/id_ed25519",
+      "chown -R ${var.ec2_ami_usr}:${var.ec2_ami_usr} /home/${var.ec2_ami_usr}/.ssh",
+      "chmod +x /home/${var.ec2_ami_usr}/${var.ec2_ami_usr}.sh",
 
       # Install packages
-      "sudo apt update -y",
-      "sudo apt install -y python3.12-venv postgresql-client nodejs npm"
+      "/home/${var.ec2_ami_usr}/${var.ec2_ami_usr}.sh",
     ]
   } 
 
@@ -117,5 +122,5 @@ output "public_ip" {
 }
 
 output "ssh_command" {
-  value = "ssh -i ~/.ssh/id_rsa ubuntu@${aws_eip.devbox_eip.public_ip}"
+  value = "ssh -i ~/.ssh/id_rsa ${var.ec2_ami_usr}@${aws_eip.devbox_eip.public_ip}"
 }

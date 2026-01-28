@@ -28,11 +28,24 @@ variable "ec2_name" {
   default     = "devbox-001"
 }
 
+variable "ec2_type" {
+  description = "The instance type for the EC2 instance"
+  type        = string
+  default     = "t4g.large"
+}
+
 variable "ec2_ami_id" {
   description = "The ami_id for the EC2 instance"
   type        = string
-  default     = "ami-0ebfd15658b045627" # Amazon Linux 2023
+  default     = "ami-0ebfd15658b045627" 
 }
+
+variable "ec2_ami_usr" {
+  description = "The default user for the EC2 instance"
+  type        = string
+  default     = "rocky" 
+}
+
 variable "my_ip" {
   description = "Your public IP address for secure SSH access (e.g., 1.2.3.4/32)"
   type        = string
