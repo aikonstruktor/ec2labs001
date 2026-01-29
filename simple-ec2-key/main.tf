@@ -49,6 +49,14 @@ resource "aws_security_group" "ssh_access" {
     cidr_blocks = [var.my_ip] # Uses variable for security
   }
 
+  ingress {
+    description = "ICMP within cluster"
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0

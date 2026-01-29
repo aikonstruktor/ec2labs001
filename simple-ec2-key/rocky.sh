@@ -1,7 +1,16 @@
 #!/bin/bash
 set -e
 sudo dnf update -y
-sudo dnf install -y postgresql nodejs podman python3-pip which git
+sudo dnf install -y postgresql nodejs podman python3-pip which git wget tmux
+echo 'export PATH=/usr/local/bin:$PATH' >> ~/.bashrc
+sudo pip3 install pgadmin4
+sudo mkdir -p /var/lib/pgadmin
+sudo chown rocky:rocky /var/lib/pgadmin
+sudo chmod 700 /var/lib/pgadmin
+sudo mkdir -p /var/log/pgadmin
+sudo chown rocky:rocky /var/log/pgadmin
+sudo chmod 700 /var/log/pgadmin
+
 
 ARCH=$(uname -m)
 
@@ -42,6 +51,13 @@ echo "Neovim installed at:"
 which nvim
 nvim --version
 
+sudo pip3 install pgadmin4
 
+
+# mkdir /opt/ocs; cd /opt/ocs; wget --content-disposition --trust-server-names "https://hpc-gridware.com/download/11546/?tmstv=1769661224"; tar xfz ocs-9.0.10-bin-lx-arm64.tar.gz; export SGE_ROOT=/opt/ocs
+
+# sh -c 'hostnamectl set-hostname master && echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4) master master" >> /etc/hosts'
+# sh -c 'hostnamectl set-hostname worker1 && echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4) worker1 worker1" >> /etc/hosts'
+# sh -c 'hostnamectl set-hostname worker2 && echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4) worker2 worker2" >> /etc/hosts'
 
 
