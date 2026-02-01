@@ -50,6 +50,20 @@ resource "aws_security_group" "ssh_access" {
   }
 
   ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = [var.my_ip] # Uses variable for security
+  }
+
+  ingress {
+    from_port   = 5050
+    to_port     = 5050
+    protocol    = "tcp"
+    cidr_blocks = [var.my_ip] # Uses variable for security
+  }
+
+  ingress {
     description = "ICMP within cluster"
     from_port   = -1
     to_port     = -1
@@ -85,6 +99,12 @@ resource "aws_instance" "devbox" {
   vpc_security_group_ids = [aws_security_group.ssh_access.id]
   key_name               = aws_key_pair.deployer.key_name
 
+  root_block_device {
+    volume_size = 40          # 🔥 increase from default (~8GB)
+    volume_type = "gp3"
+    delete_on_termination = true
+  }
+
   tags = {
     Name    = each.value.name
     SSHUser = each.value.ami_user
@@ -107,6 +127,16 @@ resource "aws_instance" "devbox" {
     destination = "/home/${each.value.ami_user}/${each.value.ami_user}.sh"
   }
 
+  provisioner "file" {
+    source      = "./tmux.conf"
+    destination = "/home/${each.value.ami_user}/tmux.conf"
+  }
+
+   provisioner "file" {
+    source      = "./prompt.sh"
+    destination = "/home/${each.value.ami_user}/prompt.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "chmod 700 /home/${each.value.ami_user}/.ssh",
@@ -114,6 +144,10 @@ resource "aws_instance" "devbox" {
       "chown -R ${each.value.ami_user}:${each.value.ami_user} /home/${each.value.ami_user}/.ssh",
       "chmod +x /home/${each.value.ami_user}/${each.value.ami_user}.sh",
       "/home/${each.value.ami_user}/${each.value.ami_user}.sh",
+      "mkdir -p /home/${each.value.ami_user}/.config/tmux",
+      "mkdir -p /home/${each.value.ami_user}/.config/bash",
+      "mv /home/${each.value.ami_user}/prompt.sh /home/${each.value.ami_user}/.config/bash/prompt.sh",
+      "mv /home/${each.value.ami_user}/tmux.conf /home/${each.value.ami_user}/.config/tmux/tmux.conf",
     ]
   }
 }

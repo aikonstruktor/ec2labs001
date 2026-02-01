@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 sudo dnf update -y
-sudo dnf install -y postgresql nodejs podman python3-pip which git wget tmux
+sudo dnf install -y postgresql nodejs podman python3-pip which git wget tmux epel-release ripgrep 
+sudo dnf install -y htop xclip
 echo 'export PATH=/usr/local/bin:$PATH' >> ~/.bashrc
 sudo pip3 install pgadmin4
 sudo mkdir -p /var/lib/pgadmin
@@ -50,8 +51,21 @@ source ~/.bashrc
 echo "Neovim installed at:"
 which nvim
 nvim --version
+git clone https://github.com/nvim-lua/kickstart.nvim.git "${XDG_CONFIG_HOME:-$HOME/.config}"/nvim
 
 sudo pip3 install pgadmin4
+
+curl -Lo eza.tar.gz https://github.com/eza-community/eza/releases/download/v0.23.4/eza_x86_64-unknown-linux-gnu.tar.gz
+tar -xzf eza.tar.gz
+sudo mv eza /usr/local/bin/
+echo "alias ls='eza --color=auto --icons --git'" >> ~/.bashrc
+echo "alias ls='eza --icons --group-directories-first'" >> ~/.bashrc
+echo "alias ll='eza -lah --icons'" >> ~/.bashrc
+
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+
+mkdir -p ~/.config/bash
+echo "[ -f ~/.config/bash/prompt.sh ] && source ~/.config/bash/prompt.sh" >> ~/.bashrc
 
 
 # mkdir /opt/ocs; cd /opt/ocs; wget --content-disposition --trust-server-names "https://hpc-gridware.com/download/11546/?tmstv=1769661224"; tar xfz ocs-9.0.10-bin-lx-arm64.tar.gz; export SGE_ROOT=/opt/ocs

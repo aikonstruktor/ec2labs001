@@ -1,0 +1,47 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"sqs:ReceiveMessage",
+				"sqs:DeleteMessage",
+				"sqs:GetQueueAttributes",
+				"sqs:ChangeMessageVisibility"
+			],
+			"Resource": [
+				"arn:aws:sqs:ap-southeast-2:767398050879:xerag-document-processing",
+				"arn:aws:sqs:ap-southeast-2:767398050879:xerag-document-processing-dlq"
+			]
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"secretsmanager:GetSecretValue"
+			],
+			"Resource": [
+				"arn:aws:secretsmanager:ap-southeast-2:767398050879:secret:xerag/database-url*"
+			]
+		},
+		{
+			"Sid": "TextractAsyncPdf",
+			"Effect": "Allow",
+			"Action": [
+				"textract:DetectDocumentText",
+				"textract:AnalyzeDocument",
+				"textract:StartDocumentAnalysis",
+				"textract:GetDocumentAnalysis"
+			],
+			"Resource": "*"
+		},
+		{
+			"Sid": "AllowKMSDecrypt",
+			"Effect": "Allow",
+			"Action": [
+				"kms:Decrypt",
+				"kms:DescribeKey"
+			],
+			"Resource": "arn:aws:kms:ap-southeast-2:767398050879:key/29d0555d-337b-439d-9d27-e47ceac858c4"
+		}
+	]
+}
