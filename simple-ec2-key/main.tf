@@ -57,8 +57,8 @@ resource "aws_security_group" "ssh_access" {
   }
 
   ingress {
-    from_port   = 5050
-    to_port     = 5050
+    from_port   = 8090
+    to_port     = 8090
     protocol    = "tcp"
     cidr_blocks = [var.my_ip] # Uses variable for security
   }
@@ -118,8 +118,13 @@ resource "aws_instance" "devbox" {
   }
 
   provisioner "file" {
-    source      = "~/.ssh/id_ed25519_toec2"
-    destination = "/home/${each.value.ami_user}/.ssh/id_ed25519"
+    source      = "~/.ssh/id_ed25519_xe"
+    destination = "/home/${each.value.ami_user}/.ssh/id_ed25519_xe"
+  }
+
+  provisioner "file" {
+    source      = "~/.ssh/id_ed25519_ai"
+    destination = "/home/${each.value.ami_user}/.ssh/id_ed25519_ai"
   }
 
   provisioner "file" {
@@ -140,7 +145,8 @@ resource "aws_instance" "devbox" {
   provisioner "remote-exec" {
     inline = [
       "chmod 700 /home/${each.value.ami_user}/.ssh",
-      "chmod 600 /home/${each.value.ami_user}/.ssh/id_ed25519",
+      "chmod 600 /home/${each.value.ami_user}/.ssh/id_ed25519_xe",
+      "chmod 600 /home/${each.value.ami_user}/.ssh/id_ed25519_ai",
       "chown -R ${each.value.ami_user}:${each.value.ami_user} /home/${each.value.ami_user}/.ssh",
       "chmod +x /home/${each.value.ami_user}/${each.value.ami_user}.sh",
       "/home/${each.value.ami_user}/${each.value.ami_user}.sh",

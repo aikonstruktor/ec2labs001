@@ -1,0 +1,11 @@
+Host xenon
+HostName github.com
+User git
+IdentityFile ~/.ssh/id_ed25519_xe
+IdentitiesOnly yes
+
+Host aikonstruktor
+HostName github.com
+User git
+IdentityFile ~/.ssh/id_ed25519_ai
+IdentitiesOnly yes

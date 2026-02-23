@@ -1,0 +1,1 @@
+ssh-keygen -t ed25519 -C "aikonstruktor@outlook.com" -f ~/.ssh/id_ed25519_ai
