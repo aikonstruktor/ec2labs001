@@ -5,4 +5,5 @@
     "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font, monospace",
     "workbench.colorTheme": "Shades of Purple (Super Dark)",
     "terminal.integrated.fontSize": 18,
+    "workbench.iconTheme": "vscode-jetbrains-icon-theme-2023-dark",
 }

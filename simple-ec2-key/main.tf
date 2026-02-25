@@ -57,6 +57,13 @@ resource "aws_security_group" "ssh_access" {
   }
 
   ingress {
+    from_port   = 3003
+    to_port     = 3003
+    protocol    = "tcp"
+    cidr_blocks = [var.my_ip] # Uses variable for security
+  }
+
+  ingress {
     from_port   = 8090
     to_port     = 8090
     protocol    = "tcp"
@@ -118,6 +125,16 @@ resource "aws_instance" "devbox" {
   }
 
   provisioner "file" {
+    source      = "./ssh-config"
+    destination = "/home/${each.value.ami_user}/.ssh/config"
+  }
+
+  provisioner "file" {
+    source      = "./code-server-setup.sh"
+    destination = "/home/${each.value.ami_user}/code-server-setup.sh"
+  }
+
+  provisioner "file" {
     source      = "~/.ssh/id_ed25519_xe"
     destination = "/home/${each.value.ami_user}/.ssh/id_ed25519_xe"
   }
@@ -152,9 +169,15 @@ resource "aws_instance" "devbox" {
       "/home/${each.value.ami_user}/${each.value.ami_user}.sh",
       "mkdir -p /home/${each.value.ami_user}/.config/tmux",
       "mkdir -p /home/${each.value.ami_user}/.config/bash",
+      "mkdir -p /home/${each.value.ami_user}/.local/share/code-server/User",
       "mv /home/${each.value.ami_user}/prompt.sh /home/${each.value.ami_user}/.config/bash/prompt.sh",
       "mv /home/${each.value.ami_user}/tmux.conf /home/${each.value.ami_user}/.config/tmux/tmux.conf",
     ]
+  }
+
+  provisioner "file" {
+    source      = "./vscode-user-settings.json"
+    destination = "/home/${each.value.ami_user}/.local/share/code-server/User/settings.json"
   }
 }
 
